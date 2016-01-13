@@ -5,9 +5,26 @@ goog.require('gmf');
 goog.require('ngeo.CreateGeoJSONBloodhound');
 goog.require('ngeo.FeatureOverlay');
 goog.require('ngeo.FeatureOverlayMgr');
+/**
+ * This goog.require is needed because it provides 'ngeo-search' used in
+ * the template.
+ * @suppress {extraRequire}
+ */
 goog.require('ngeo.searchDirective');
 goog.require('ol.Map');
 goog.require('ol.proj');
+
+
+gmfModule.value('gmfSearchTemplateUrl',
+    /**
+     * @param {angular.JQLite} element Element.
+     * @param {angular.Attributes} attrs Attributes.
+     */
+    function(element, attrs) {
+      var templateUrl = attrs['gmfSearchTemplateurl'];
+      return templateUrl !== undefined ? templateUrl :
+          gmf.baseTemplateUrl + '/search.html';
+    });
 
 
 /**
@@ -26,12 +43,13 @@ goog.require('ol.proj');
  *             gmf-search-clearbutton="true">
  * </gmf-search>
  *
+ * @param {string} gmfSearchTemplateUrl URL to template.
  * @return {angular.Directive} The Directive Definition Object.
  * @ngInject
  * @ngdoc directive
  * @ngname gmfSearch
  */
-gmf.searchDirective = function() {
+gmf.searchDirective = function(gmfSearchTemplateUrl) {
   return {
     restrict: 'E',
     scope: {
@@ -41,17 +59,7 @@ gmf.searchDirective = function() {
     },
     controller: 'GmfSearchController',
     controllerAs: 'ctrl',
-    template:
-        '<div class="gmf-search">' +
-        '<input type="text" placeholder="{{\'search…\' | translate}}" ' +
-        'ng-model="ctrl.input_value" ' +
-        'ngeo-search="ctrl.options" ' +
-        'ngeo-search-datasets="ctrl.datasets" ' +
-        'ngeo-search-listeners="ctrl.listeners">' +
-        '<div class="clear-button ng-hide" ' +
-        'ng-hide="!ctrl.clearButton || ctrl.input_value == \'\'" ' +
-        'ng-click="ctrl.clear()"></div>' +
-        '</div>',
+    templateUrl: gmfSearchTemplateUrl,
     link:
         /**
          * @param {angular.Scope} scope Scope.

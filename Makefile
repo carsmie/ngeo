@@ -1,6 +1,6 @@
 SRC_JS_FILES := $(shell find src -type f -name '*.js')
 NGEO_DIRECTIVES_PARTIALS_FILES := $(shell ls -1 src/directives/partials/*.html)
-GMF_DIRECTIVES_PARTIALS_FILES := $(shell ls -1 contribs/gmf/src/directives/partials/*.html | "")
+GMF_DIRECTIVES_PARTIALS_FILES := $(shell ls -1 contribs/gmf/src/directives/partials/*.html)
 
 EXPORTS_JS_FILES := $(shell find exports -type f -name '*.js')
 
@@ -8,11 +8,10 @@ EXAMPLES_JS_FILES := $(shell find examples -maxdepth 1 -type f -name '*.js')
 EXAMPLES_HTML_FILES := $(shell find examples -maxdepth 1 -type f -name '*.html')
 
 GMF_SRC_JS_FILES := $(shell find contribs/gmf/src -type f -name '*.js')
-GMF_EXAMPLES_JS_FILES := $(shell find contribs/gmf/examples -type f -name '*.js')
 GMF_EXAMPLES_HTML_FILES := $(shell find contribs/gmf/examples -maxdepth 1 -type f -name '*.html')
+GMF_EXAMPLES_JS_FILES := $(shell find contribs/gmf/examples -maxdepth 1 -type f -name '*.js')
 GMF_APPS_MOBILE_JS_FILES := $(shell find contribs/gmf/apps/mobile/js -type f -name '*.js')
 GMF_APPS_MOBILE_LESS_FILES := $(shell find contribs/gmf/less -type f -name '*.less')
-GMF_APPS_MOBILE_MAIN_LESS_FILES := $(filter %/mobile.less, $(GMF_APPS_LESS_FILES))
 GMF_APPS_LIBS_JS_FILES += \
 	node_modules/jquery/dist/jquery.min.js \
 	node_modules/angular/angular.min.js \
@@ -37,8 +36,23 @@ EXAMPLE_HOSTED_REQUIREMENTS = .build/examples-hosted/lib/ngeo.js \
 	.build/examples-hosted/lib/d3.min.js \
 	.build/examples-hosted/lib/watchwatchers.js \
 	.build/examples-hosted/lib/typeahead.bundle.min.js \
+	.build/examples-hosted/lib/proj4.js \
 	.build/examples-hosted/partials \
 	.build/examples-hosted/data
+
+# Git
+GITHUB_USERNAME ?= camptocamp
+GIT_BRANCH ?= $(shell git rev-parse --symbolic-full-name --abbrev-ref HEAD)
+GIT_REMOTE_NAME ?= origin
+
+# i18n
+L10N_LANGUAGES = de it
+L10N_PO_FILES = $(addprefix c2cgeoportal/locale/,$(addsuffix /LC_MESSAGES/c2cgeoportal.po, $(L10N_LANGUAGES)))
+LANGUAGES = en $(L10N_LANGUAGES)
+TX_GIT_BRANCH ?= master
+
+NGEO_JS_FILES = $(shell find src -type f -name '*.js')
+GMF_JS_FILES = $(shell find contribs/gmf/src -type f -name '*.js')
 
 EXTERNS_ANGULAR = .build/externs/angular-1.4.js
 EXTERNS_ANGULAR_Q = .build/externs/angular-1.4-q_templated.js
@@ -95,7 +109,8 @@ check: lint dist check-examples test compile-examples build-gmf-mobile-app
 compile-examples: .build/examples/all.min.js
 
 .PHONY: build-gmf-mobile-app
-build-gmf-mobile-app: $(addprefix contribs/gmf/build/mobile,.js .css)
+build-gmf-mobile-app: $(addprefix contribs/gmf/build/mobile,.js .css) \
+	$(addprefix contribs/gmf/build/gmf-,$(addsuffix .json, $(LANGUAGES)))
 
 .PHONY: check-examples
 check-examples: $(BUILD_EXAMPLES_CHECK_TIMESTAMP_FILES)
@@ -104,7 +119,7 @@ check-examples: $(BUILD_EXAMPLES_CHECK_TIMESTAMP_FILES)
 lint: .build/python-venv/bin/gjslint .build/node_modules.timestamp .build/gjslint.timestamp .build/jshint.timestamp
 
 .PHONY: test
-test: .build/ol-deps.js .build/ngeo-deps.js .build/templatecache.js .build/gmftemplatecache.js .build/node_modules.timestamp
+test: .build/ol-deps.js .build/ngeo-deps.js .build/gmf-deps.js .build/templatecache.js .build/gmftemplatecache.js .build/node_modules.timestamp
 	./node_modules/karma/bin/karma start karma-conf.js --single-run
 
 .PHONY: serve
@@ -120,9 +135,6 @@ examples-hosted: $(EXAMPLE_HOSTED_REQUIREMENTS) \
 		.build/examples-hosted/contribs/gmf/apps/mobile/index.html
 
 .PHONY: gh-pages
-GITHUB_USERNAME ?= camptocamp
-GIT_BRANCH ?= $(shell git rev-parse --symbolic-full-name --abbrev-ref HEAD)
-gh-pages: GIT_REMOTE_NAME ?= origin
 gh-pages: .build/ngeo-$(GITHUB_USERNAME)-gh-pages \
 		.build/examples-hosted/index.html \
 		.build/examples-hosted/contribs/gmf/index.html \
@@ -262,6 +274,10 @@ dist/gmf.js: buildtools/gmf.json \
 	mkdir -p $(dir $@)
 	cp $< $@
 
+.build/examples-hosted/lib/proj4.js: node_modules/proj4/dist/proj4.js
+	mkdir -p $(dir $@)
+	cp $< $@
+
 .build/examples-hosted/partials: examples/partials
 	mkdir -p $@
 	cp $</* $@
@@ -269,6 +285,10 @@ dist/gmf.js: buildtools/gmf.json \
 .build/examples-hosted/data: examples/data
 	mkdir -p $@
 	cp examples/data/* $@
+
+.build/examples-hosted/contribs/gmf/data: contribs/gmf/examples/data
+	mkdir -p $@
+	cp contribs/gmf/examples/data/* $@
 
 .build/examples-hosted/contribs/gmf/fonts: contribs/gmf/fonts build-gmf-mobile-app
 	mkdir -p $(dir $@)
@@ -303,31 +323,32 @@ node_modules/angular/angular.min.js: .build/node_modules.timestamp
 .PRECIOUS: .build/examples-hosted/contribs/gmf/%.html
 .build/examples-hosted/contribs/gmf/%.html: contribs/gmf/examples/%.html
 	mkdir -p $(dir $@)
-	sed -e 's|\.\./node_modules/openlayers/css/ol.css|lib/ngeo.css|' \
-		-e 's|\.\./node_modules/bootstrap/dist/css/bootstrap.css|lib/bootstrap.min.css|' \
-		-e 's|\.\./node_modules/jquery/dist/jquery.js|lib/jquery.min.js|' \
-		-e 's|\.\./node_modules/bootstrap/dist/js/bootstrap.js|lib/bootstrap.min.js|' \
-		-e 's|\.\./node_modules/angular/angular.js|lib/angular.min.js|' \
-		-e 's|\.\./node_modules/angular-gettext/dist/angular-gettext.js|lib/angular-gettext.min.js|' \
-		-e 's|\.\./node_modules/d3/d3.js|lib/d3.min.js|' \
-		-e 's|\.\./node_modules/typeahead.js/dist/typeahead.bundle.js|lib/typeahead.bundle.min.js|' \
-		-e 's|/@?main=$*.js|$*.js|' \
+	sed -e 's|\.\./node_modules/openlayers/css/ol\.css|lib/ngeo.css|' \
+		-e 's|\.\./node_modules/bootstrap/dist/css/bootstrap\.css|lib/bootstrap.min.css|' \
+		-e 's|\.\./node_modules/jquery/dist/jquery\.js|lib/jquery.min.js|' \
+		-e 's|\.\./node_modules/bootstrap/dist/js/bootstrap\.js|lib/bootstrap.min.js|' \
+		-e 's|\.\./node_modules/angular/angular\.js|lib/angular.min.js|' \
+		-e 's|\.\./node_modules/angular-gettext/dist/angular-gettext\.js|lib/angular-gettext.min.js|' \
+		-e 's|\.\./node_modules/d3/d3\.js|lib/d3.min.js|' \
+		-e 's|\.\./node_modules/typeahead.js/dist/typeahead.bundle\.js|lib/typeahead.bundle.min.js|' \
+		-e 's|\.\./node_modules/proj4/dist/proj4\.js|lib/proj4.js|' \
+		-e 's|/@?main=$*\.js|$*.js|' \
 		-e '/default\.js/d' \
-		-e 's|\.\./utils/watchwatchers.js|lib/watchwatchers.js|' \
+		-e 's|\.\./utils/watchwatchers\.js|lib/watchwatchers.js|' \
 		-e '/$*.js/i\    <script src="../../lib/gmf.js"></script>' $< > $@
 
 .PRECIOUS: .build/examples-hosted/contribs/gmf/apps/mobile/index.html
 .build/examples-hosted/contribs/gmf/apps/mobile/index.html: contribs/gmf/apps/mobile/index.html \
 		.build/examples-hosted/contribs/gmf/build \
 		.build/examples-hosted/contribs/gmf/fonts \
+		.build/examples-hosted/contribs/gmf/data \
 		.build/examples-hosted/contribs/gmf/apps/mobile/js/mobile.js
 	mkdir -p $(dir $@)
 	sed -e '/stylesheet\/less" href="..\/..\//d' \
-		-e 's|stylesheet/less" href="less/mobile.less|stylesheet" href="../../build/mobile.css|' \
 		-e '/\/node_modules\//d' \
 		-e '/default\.js/d' \
-		-e 's|utils/watchwatchers.js|lib/watchwatchers.js|' \
-		-e 's|/@?main=js/mobile.js|../../build/mobile.js|' $< > $@
+		-e 's|utils/watchwatchers\.js|lib/watchwatchers.js|' \
+		-e 's|/@?main=mobile/js/mobile\.js|../../build/mobile.js|' $< > $@
 
 .PRECIOUS: .build/examples-hosted/%.js
 .build/examples-hosted/%.js: examples/%.js
@@ -345,7 +366,9 @@ node_modules/angular/angular.min.js: .build/node_modules.timestamp
 
 .build/examples-hosted/contribs/gmf/index.html: buildtools/examples-index.mako.html $(GMF_EXAMPLES_HTML_FILES) .build/python-venv/bin/mako-render .build/beautifulsoup4.timestamp
 	mkdir -p $(dir $@)
-	.build/python-venv/bin/python buildtools/generate-examples-index.py $< $(GMF_EXAMPLES_HTML_FILES) > $@
+	.build/python-venv/bin/python buildtools/generate-examples-index.py \
+		--app 'Mobile application' apps/mobile/index.html 'The mobile example application for GeoMapFish.' \
+		$< $(GMF_EXAMPLES_HTML_FILES) > $@
 
 .build/%.check.timestamp: .build/examples-hosted/%.html \
 		.build/examples-hosted/%.js \
@@ -400,7 +423,7 @@ $(EXTERNS_JQUERY):
 	touch $@
 
 .build/python-venv:
-	mkdir -p .build
+	mkdir -p $(dir $@)
 	virtualenv --no-site-packages $@
 
 .build/python-venv/bin/gjslint: .build/python-venv
@@ -429,6 +452,10 @@ $(EXTERNS_JQUERY):
 	.build/python-venv/bin/python buildtools/closure/depswriter.py \
 		--root_with_prefix="src ../../../../../../../../../src" --output_file=$@
 
+.build/gmf-deps.js: .build/python-venv
+	.build/python-venv/bin/python buildtools/closure/depswriter.py \
+		--root_with_prefix="contribs/gmf/src ../../../../../../../../../contribs/gmf/src" --output_file=$@
+
 # The keys in the template cache begin with "../src/directives/partials". This
 # is done so ngeo.js works for the examples on github.io. If another key
 # pattern is needed this should be changed.
@@ -441,7 +468,7 @@ $(EXTERNS_JQUERY):
 
 .build/gmftemplatecache.js: buildtools/templatecache.mako.js \
 		.build/python-venv/bin/mako-render \
-		$(NGEO_DIRECTIVES_PARTIALS_FILES) $(NGEO_DIRECTIVES_PARTIALS_FILES)
+		$(NGEO_DIRECTIVES_PARTIALS_FILES) $(GMF_DIRECTIVES_PARTIALS_FILES)
 	PYTHONIOENCODING=UTF-8 .build/python-venv/bin/mako-render \
 		--var "app=gmf" \
 		--var "partials=$(addprefix ngeo:,$(NGEO_DIRECTIVES_PARTIALS_FILES)) \
@@ -460,6 +487,7 @@ $(EXTERNS_JQUERY):
 contribs/gmf/build/mobile.closure.js: contribs/gmf/apps/mobile/build.json \
 		$(EXTERNS_FILES) \
 		$(GMF_APPS_MOBILE_JS_FILES) \
+		.build/gmftemplatecache.js \
 		.build/node_modules.timestamp
 	mkdir -p $(dir $@)
 	./node_modules/openlayers/node_modules/.bin/closure-util build $< $@
@@ -467,10 +495,72 @@ contribs/gmf/build/mobile.closure.js: contribs/gmf/apps/mobile/build.json \
 contribs/gmf/build/mobile.js: contribs/gmf/build/mobile.closure.js $(GMF_APPS_LIBS_JS_FILES)
 	awk 'FNR==1{print ""}1' $(GMF_APPS_LIBS_JS_FILES) $< > $@
 
+.PHONY: compile-css
+compile-css: contribs/gmf/build/mobile.css
+
 contribs/gmf/build/mobile.css: $(GMF_APPS_MOBILE_LESS_FILES) \
 		.build/node_modules.timestamp
 	mkdir -p $(dir $@)
-	./node_modules/.bin/lessc contribs/gmf/apps/mobile/less/build.less $@ --autoprefix
+	./node_modules/.bin/lessc contribs/gmf/apps/mobile/less/mobile.less $@ --autoprefix
+
+
+# i18n
+
+# if don't exists create one for read only access
+$(HOME)/.transifexrc:
+	echo "[https://www.transifex.com]" > $@
+	echo "hostname = https://www.transifex.com" >> $@
+	echo "username = c2c" >> $@
+	echo "password = c2cc2c" >> $@
+	echo "token =" >> $@
+
+.tx/config: .tx/config.mako .build/python-venv/bin/mako-render
+	PYTHONIOENCODING=UTF-8 .build/python-venv/bin/mako-render \
+		--var "git_branch=$(TX_GIT_BRANCH)" $< > $@
+
+#.build/locale/ngeo.pot: lingua.cfg .build/node_modules.timestamp \
+#		$(NGEO_DIRECTIVES_PARTIALS_FILES) $(NGEO_JS_FILES)
+#	mkdir -p $(dir $@)
+#	node buildtools/extract-messages.js $(NGEO_DIRECTIVES_PARTIALS_FILES) $(NGEO_JS_FILES) > $@
+
+.build/locale/gmf.pot: lingua.cfg .build/node_modules.timestamp \
+		$(GMF_DIRECTIVES_PARTIALS_FILES) $(GMF_JS_FILES)
+	mkdir -p $(dir $@)
+	node buildtools/extract-messages $(GMF_DIRECTIVES_PARTIALS_FILES) $(GMF_JS_FILES) > $@
+
+.build/python-venv/bin/tx: .build/python-venv $(HOME)/.transifexrc
+	.build/python-venv/bin/pip install transifex-client
+	touch $@
+
+.PHONY: transifex-get
+transifex-get: c2cgeoportal/locale/c2cgeoportal.pot $(L10N_PO_FILES)
+
+.PHONY: transifex-send
+transifex-send: .tx/config .build/python-venv/bin/tx \
+		.build/locale/gmf.pot
+		# .build/locale/ngeo.pot
+	.build/python-venv/bin/tx push --source
+
+.PHONY: transifex-init
+transifex-init: .build/dev-requirements.timestamp c2cgeoportal/locale/c2cgeoportal.pot .tx/config
+	.build/venv/bin/tx push --source
+	.build/venv/bin/tx push --translations --force --no-interactive
+
+#.build/locale/%/LC_MESSAGES/ngeo.po: .tx/config .build/python-venv/bin/tx
+#	.build/python-venv/bin/tx pull -l $* --force
+
+.build/locale/%/LC_MESSAGES/gmf.po: .tx/config .build/python-venv/bin/tx
+	.build/python-venv/bin/tx pull -l $* --force
+
+contribs/gmf/build/gmf-en.json:
+	mkdir -p $(dir $@)
+	echo '{}' > $@
+
+contribs/gmf/build/gmf-%.json: .build/locale/%/LC_MESSAGES/gmf.po .build/node_modules.timestamp
+	mkdir -p $(dir $@)
+	node buildtools/compile-catalog $< > $@
+
+# clean
 
 .PHONY: clean
 clean:
@@ -480,6 +570,7 @@ clean:
 	rm -f .build/jshint.timestamp
 	rm -f .build/ol-deps.js
 	rm -f .build/ngeo-deps.js
+	rm -f .build/gmf-deps.js
 	rm -f .build/info.json
 	rm -f .build/templatecache.js
 	rm -f .build/gmftemplatecache.js
@@ -489,9 +580,11 @@ clean:
 	rm -rf .build/examples-hosted
 	rm -rf .build/contribs
 	rm -rf contribs/gmf/build
+	rm -f .build/locale/gmf.pot
 
 .PHONY: cleanall
 cleanall: clean
 	rm -rf .build
 	rm -rf dist
 	rm -rf node_modules
+	rm -f $(L10N_PO_FILES)

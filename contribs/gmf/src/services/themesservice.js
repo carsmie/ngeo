@@ -34,13 +34,12 @@ gmf.ThemesEventType = {
  * @constructor
  * @extends {goog.events.EventTarget}
  * @param {angular.$http} $http Angular http service.
- * @param {string} treeUrl URL to "themes" web service.
- * @param {string} isThemePrivateUrl URL to check if theme is public.
+ * @param {string} gmfTreeUrl URL to "themes" web service.
  * @ngInject
  * @ngdoc service
  * @ngname gmfThemes
  */
-gmf.Themes = function($http, treeUrl, isThemePrivateUrl) {
+gmf.Themes = function($http, gmfTreeUrl) {
 
   goog.base(this);
 
@@ -54,13 +53,7 @@ gmf.Themes = function($http, treeUrl, isThemePrivateUrl) {
    * @type {string}
    * @private
    */
-  this.treeUrl_ = treeUrl;
-
-  /**
-   * @type {string}
-   * @private
-   */
-  this.isThemePrivateUrl_ = isThemePrivateUrl;
+  this.treeUrl_ = gmfTreeUrl;
 
   /**
    * @type {?angular.$q.Promise}
@@ -117,6 +110,8 @@ gmf.Themes.prototype.getBgLayers = function() {
           // create an ol.layer from the json spec
           // use a future layer factory shared with the layertree
           //return layer;
+
+          return item;
         }, this));
 
         // add the blank layer ???
@@ -163,13 +158,13 @@ gmf.Themes.prototype.getThemesObject = function() {
 
 
 /**
- * @param {?number} roleId The role id to send in the request.
+ * @param {number=} opt_roleId The role id to send in the request.
  * Load themes from the "themes" service.
  * @export
  */
-gmf.Themes.prototype.loadThemes = function(roleId) {
+gmf.Themes.prototype.loadThemes = function(opt_roleId) {
   this.promise_ = this.$http_.get(this.treeUrl_, {
-    params: goog.isDef(roleId) ? {'role': roleId} : {},
+    params: opt_roleId !== undefined ? {'role': opt_roleId} : {},
     cache: false
   }).then(goog.bind(
       /**
@@ -182,17 +177,5 @@ gmf.Themes.prototype.loadThemes = function(roleId) {
       }, this));
 };
 
-
-/**
- * @param {string} themeId The theme id to send in the request.
- * checks if the theme is protected or not.
- * @return {angular.$q.Promise} Promise.
- */
-gmf.Themes.prototype.isThemePrivate = function(themeId) {
-  return this.$http_.get(this.isThemePrivateUrl_, {
-    params: {'theme': themeId},
-    cache: false
-  });
-};
 
 gmfModule.service('gmfThemes', gmf.Themes);
