@@ -7,9 +7,30 @@
 /contribs/gmf/fonts/gmf-icons.eot
 /contribs/gmf/fonts/gmf-icons.ttf
 /contribs/gmf/fonts/gmf-icons.woff
+/contribs/nk/build
+/contribs/nk/fonts/gmf-icons.eot
+/contribs/nk/fonts/gmf-icons.ttf
+/contribs/nk/fonts/gmf-icons.woff
 /.tx/config
 /.tx/.tx/ngeo.ngeo-*
 /.tx/.tx/ngeo.gmf-*
+/.tx/.tx/ngeo.nk-*
 /examples/simple.min.js
-contribs/gmf/fonts/FontAwesome*
-contribs/gmf/fonts/fontawesome*
+
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode
+
+## Directory-based project format
+.idea/
+# if you remove the above rule, at least ignore user-specific stuff:
+# .idea/workspace.xml
+# .idea/tasks.xml
+# and these sensitive or high-churn files:
+# .idea/dataSources.ids
+# .idea/dataSources.xml
+# .idea/sqlDataSources.xml
+# .idea/dynamic.xml
+
+## File-based project format
+*.ipr
+*.iws
+*.iml
