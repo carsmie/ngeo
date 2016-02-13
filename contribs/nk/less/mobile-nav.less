@@ -1,0 +1,257 @@
+/**
+ * Styles for mobile navigation menus (side menus).
+ */
+@duration: .3s;
+main {
+  position: fixed;
+  background-color: @color3;
+  box-shadow: 0px 0px 15px black;
+  width: 100%;
+  height: 100%;
+  z-index: @content-index;
+  text-align: center;
+
+  transform: translateZ(0);
+  transition: transform @duration;
+  will-change: transform;
+  .nav-left-is-visible & {
+    transform: translateX(@nav-width);
+  }
+  .nav-right-is-visible & {
+    transform: translateX(-@nav-width);
+  }
+
+  .overlay {
+    /* shadow layer visible when navigation is active */
+    position: absolute;
+    z-index: @above-content-index;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+    background-color: fade(@color2, 40%);
+    visibility: hidden;
+    opacity: 0;
+
+    .transition(opacity @duration, visibility @duration;);
+    .backface-visibility(hidden);
+
+    .nav-is-visible & {
+      visibility: visible;
+      opacity: 1;
+    }
+  }
+}
+
+@nav-bar-height: 50px;
+
+.nav-left-is-visible nav.nav-right,
+.nav-right-is-visible nav.nav-left  {
+  display: none;
+}
+
+.nav-left-is-visible nav.nav-left,
+.nav-right-is-visible nav.nav-right  {
+  visibility: visible;
+}
+
+nav.nav-left,
+nav.nav-right {
+  position: fixed;
+  top: 0;
+  width: @nav-width;
+  height: 100%;
+  background-color: @nav-bg;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  z-index: @below-content-index;
+  visibility: hidden;
+
+  header {
+    display: block;
+    height: @nav-bar-height;
+    line-height: @nav-bar-height;
+    background-color: @nav-header-bg;
+
+    .go-back {
+      position: absolute;
+      left: 0;
+      z-index: 2;
+      transition: opacity 1s;
+      will-change: opacity, visibility;
+      opacity: 0;
+      visibility: hidden;
+      height: @nav-bar-height;
+      width: 30px;
+
+      &.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      &::before, &::after {
+        transform-origin: 1px 50%;
+        left: 10px;
+      }
+    }
+
+
+    > nav {
+      position: absolute;
+      width: @nav-width;
+      left: @nav-width;
+      transform: translateX(0);
+      transition: transform @duration, opacity @duration;
+      will-change: transform, opacity;
+      opacity: 0;
+      text-align: center;
+
+
+      &.active {
+        transform: translateX(-100%);
+        opacity: 1;
+      }
+      &.slide-out {
+        transform: translateX(-120%);
+        opacity: 0;
+      }
+    }
+
+    &.back {
+      > nav {
+        transform: translate(-120%);
+      }
+      > nav.active {
+        transform: translateX(-100%);
+      }
+      > nav.slide-out {
+        transform: translateX(0);
+      }
+    }
+  }
+
+  a[data-toggle] {
+    position: relative;
+    padding-right: 40px;
+
+    &::before, &::after {
+      /* arrow goes on the right side - children navigation */
+      right: 0;
+      transform-origin: 9px 50%;
+    }
+  }
+
+  .go-back,
+  a[data-toggle=slide-in] {
+    &::before, &::after {
+      /* arrow icon in CSS - for element with nested unordered lists */
+      content: '';
+      position: absolute;
+      top: 50%;
+      margin-top: -1px;
+      display: inline-block;
+      height: 2px;
+      width: 10px;
+      background: darken(@nav-bg, 20%);
+      .backface-visibility(hidden);
+    }
+
+    &::before {
+      transform: rotate(45deg);
+    }
+    &::after {
+      transform: rotate(-45deg);
+    }
+  }
+
+  @menu-item-height: @nav-bar-height;
+  ul a[data-toggle=slide-in] {
+    display: block;
+    height: @menu-item-height;
+    line-height: @menu-item-height;
+    color: @nav-links;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .slide {
+    position: fixed;
+    height: ~"calc(100% - @{nav-bar-height})";
+    width: @nav-width;
+    transform: translateX(100%);
+    transition: transform @duration, opacity @duration;
+    will-change: transform, opacity;
+    opacity: 0;
+    overflow-y: auto;
+    padding: 10px;
+
+    &.active {
+      transform: translateX(0%);
+      opacity: 1;
+    }
+    &.slide-out {
+      transform: translateX(-20%);
+      opacity: 0;
+    }
+  }
+}
+
+.nav-left {
+  left: 0;
+  right: auto;
+}
+
+.nav-right {
+  right: 0;
+}
+
+/**
+ * Buttons to open right and left navigation menus
+ */
+.nav-trigger {
+  top: @app-margin;
+  background: white;
+  z-index: @above-content-index;
+  height: ~"calc("@map-tools-size ~" - 3px)";
+  margin-top: 2px;
+  border: none;
+}
+
+.nav-left-trigger {
+  left: ~"calc("@app-margin ~" + 2px)";
+  box-shadow: 3px 0 5px -2px #bbb;
+}
+
+.nav-right-trigger {
+  right: ~"calc("@app-margin ~" + 2px)";
+  box-shadow: -2px 0 5px -2px #bbb;
+}
+
+
+//For tablet only
+@media (min-width: @screen-sm-min) {
+  main button:hover{
+    background-color: @onhover-color;
+  }
+
+  .nav-trigger {
+    top: @app-margin;
+    margin: 0;
+    background-color: @map-tools-bg-color;
+    border: solid 1px @map-tools-color;
+    box-shadow: none;
+    height: 3em;
+  }
+
+  .nav-left-trigger {
+    left: @app-margin;
+  }
+
+  .nav-right-trigger {
+    left: auto;
+    right: @app-margin;
+  }
+}

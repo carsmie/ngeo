@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="{{mobileCtrl.lang}}" ng-app="app" ng-controller="MobileController as mainCtrl">
+  <head>
+    <title translate>Mobile Application</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="../../build/mobile.css">
+  </head>
+  <body ng-class="{'nav-is-visible': mainCtrl.navIsVisible(),
+                   'nav-left-is-visible': mainCtrl.leftNavIsVisible(),
+                   'nav-right-is-visible': mainCtrl.rightNavIsVisible()}">
+    <main>
+      <nk-map nk-map-map="mainCtrl.map"></nk-map>
+      <button class="nav-trigger nav-left-trigger"
+        ng-click="mainCtrl.toggleLeftNavVisibility()">
+        <span class="nk-icon nk-icon-layers"></span>
+      </button>
+      <div class="search">
+        <nk-search nk-search-map="mainCtrl.map"
+                    nk-search-datasources="mainCtrl.searchDatasources"
+                    nk-search-clearbutton="true">
+        </nk-search>
+      </div>
+      <button class="nav-trigger nav-right-trigger"
+        ng-click="mainCtrl.toggleRightNavVisibility()">
+        <i class="fa fa-wrench"></i>
+      </button>
+      <div class="overlay" ng-click="mainCtrl.hideNav()"></div>
+      <button ngeo-mobile-geolocation=""
+        ngeo-mobile-geolocation-map="::mainCtrl.map"
+        ngeo-mobile-geolocation-options="::mainCtrl.mobileGeolocationOptions">
+        <span class="fa fa-location-arrow"></span>
+      </button>
+    </main>
+    <nav class="nav-left" nk-mobile-nav>
+      <header>
+        <a class="go-back" href="#"></a>
+      </header>
+      <!-- main menu -->
+      <div class="active slide">
+        <ul>
+          <li>
+            <a href="#background" data-toggle="slide-in">Background</a>
+          </li>
+          <li>
+            <a href="#themes" data-toggle="slide-in">Themes</a>
+          </li>
+          <nk-layertree
+              nk-layertree-source="mainCtrl.theme"
+              nk-layertree-map="::mainCtrl.map"
+              nk-layertree-openlinksinnewwindow="true">
+          </nk-layertree>
+        </ul>
+      </div>
+      <div id="background" class="slide" data-header-title="Background">
+        <nk-mobile-background-layer-selector
+          nk-mobile-background-layer-selector-map="::mainCtrl.map">
+        </nk-mobile-background-layer-selector>
+      </div>
+      <nk-themeselector
+          id="themes"
+          class="slide"
+          data-header-title="Themes"
+          nk-themeselector-currenttheme="mainCtrl.theme"
+          nk-themeselector-filter="::mainCtrl.filter">
+      </nk-themeselector>
+    </nav>
+    <nav class="nav-right" nk-mobile-nav>
+      <header>
+        <a class="go-back" href="#"></a>
+      </header>
+      <!-- main menu -->
+      <div class="active slide">
+        <ul>
+          <li>
+            <a href="#measure-tools" data-toggle="slide-in">Measure tools</a>
+            <a href="#login" data-toggle="slide-in">Login</a>
+          </li>
+        </ul>
+      </div>
+      <div id="measure-tools" class="slide" data-header-title="Measure tools">
+        <ul>
+          <li>
+            <a href="#">Length</a>
+            <a href="#">Area</a>
+          </li>
+        </ul>
+      </div>
+      <nk-authentication id="login" class="slide" data-header-title="Login">
+      </nk-authentication>
+    </nav>
+    <script src="../../../../node_modules/jquery/dist/jquery.js"></script>
+    <script src="../../../../node_modules/angular/angular.js"></script>
+    <script src="../../../../node_modules/typeahead.js/dist/typeahead.bundle.js"></script>
+    <script src="../../../../node_modules/proj4/dist/proj4-src.js" type="text/javascript"></script>
+    <script src="../../../../node_modules/angular-gettext/dist/angular-gettext.js" type="text/javascript"></script>
+    <script src="../../../../node_modules/bootstrap/dist/js/bootstrap.js" type="text/javascript"></script>
+    <script src="../../../../node_modules/d3/d3.min.js" type="text/javascript"></script>
+    <script src="/@?main=mobile/js/controller.js"></script>
+    <script src="default.js"></script>
+    <script src="../../../../utils/watchwatchers.js"></script>
+    <script>
+      (function() {
+         var module = angular.module('app');
+         module.constant('defaultLang', 'en');
+         module.constant('langUrls', {
+           'en': '../../build/nk-en.json',
+           'fr': '../../build/nk-fr.json',
+           'de': '../../build/nk-de.json'
+         });
+         module.constant('authenticationBaseUrl', 'https://geomapfish-demo.camptocamp.net/2.0/wsgi');
+         module.constant('fulltextsearchUrl', 'https://geomapfish-demo.camptocamp.net/2.0/wsgi/fulltextsearch');
+         module.constant('nkWmsUrl', 'https://geomapfish-demo.camptocamp.net/2.0/wsgi/mapserv_proxy');
+         module.constant('nkTreeUrl', 'https://geomapfish-demo.camptocamp.net/2.0/wsgi/themes?version=2&background=background');
+       })();
+    </script>
+  </body>
+</html>

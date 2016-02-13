@@ -1,0 +1,14 @@
+<ul class="nk-mobile-background-layer-selector">
+  <li ng-repeat="layer in ::ctrl.bgLayers"
+      ng-click="ctrl.setLayer(layer)">
+    <div class="nk-check">
+      <span class="nk-icon"
+          ng-class="{'nk-icon-check': ctrl.bgLayer == layer}">
+      </span>
+    </div>
+    <div class="nk-text">{{::layer.get("label")}}</div>
+    <img class="nk-thumb"
+         ng-src="{{::layer.get('metadata')['thumbnail']}}" />
+    <div class="nk-eol"></div>
+  </li>
+</ul>

@@ -1,0 +1,83 @@
+/**
+ * Styles for the map and OL3 controls.
+ */
+.ol-zoom {
+  background-color: transparent;
+  padding: 0;
+  button {
+    margin: 0;
+    margin-bottom: 3px;
+    height: @map-tools-size;
+    width: @map-tools-size;
+    background-color: @map-tools-bg-color;
+    border: solid 1px @map-tools-color;
+    color: @map-tools-color;
+    &:hover,
+    &:focus {
+      background-color: @onhover-color;
+    }
+  }
+  &:hover {
+    background-color: transparent;
+  }
+}
+
+.ol-attribution {
+  display:none;
+}
+
+.ol-scale-line, .ol-scale-line-inner {
+  background-color: @map-tools-bg-color;
+  border-color: @map-tools-color;
+  border-width: 2px;
+  color: @map-tools-color;
+}
+
+button[ngeo-mobile-geolocation] {
+  background-color: @map-tools-bg-color;
+  border: solid 1px @map-tools-color;
+  color: @map-tools-color;
+  right: 13px;
+  top: 135px;
+}
+
+.nk-theme-selector,
+.nk-mobile-background-layer-selector {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    cursor: pointer;
+    margin-bottom: 10px;
+  }
+
+  .nk-check,
+  .nk-text,
+  .nk-thumb {
+    float: left;
+  }
+
+  .nk-check {
+    height: 20px;
+    margin: 15px 5px 0 0;
+    width: 20px;
+  }
+
+  .nk-text {
+    margin: 15px 10px 0 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 140px;
+    white-space: nowrap;
+  }
+
+  .nk-thumb {
+    height: 60px;
+    width: 60px;
+  }
+
+  .nk-eol {
+    clear: left;
+  }
+}

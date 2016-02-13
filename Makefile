@@ -1,6 +1,7 @@
-SRC_JS_FILES := $(shell find src -type f -name '*.js')
+'SRC_JS_FILES := $(shell find src -type f -name '*.js')
 NGEO_DIRECTIVES_PARTIALS_FILES := $(shell ls -1 src/directives/partials/*.html)
 GMF_DIRECTIVES_PARTIALS_FILES := $(shell ls -1 contribs/gmf/src/directives/partials/*.html)
+NK_DIRECTIVES_PARTIALS_FILES := $(shell ls -1 contribs/nk/src/directives/partials/*.html)
 
 EXPORTS_JS_FILES := $(shell find exports -type f -name '*.js')
 
@@ -17,6 +18,21 @@ GMF_APPS_JS_FILES := $(shell find contribs/gmf/apps/ -type f -name '*.js')
 GMF_APPS_LESS_FILES := $(shell find contribs/gmf/less -type f -name '*.less')
 GMF_APPS_LIBS_JS_FILES += \
 	contribs/gmf/examples/https.js \
+	node_modules/jquery/dist/jquery.min.js \
+	node_modules/angular/angular.min.js \
+	node_modules/angular-gettext/dist/angular-gettext.min.js \
+	node_modules/bootstrap/dist/js/bootstrap.min.js \
+	node_modules/proj4/dist/proj4.js \
+	node_modules/d3/d3.min.js \
+	node_modules/typeahead.js/dist/typeahead.bundle.min.js
+
+NK_SRC_JS_FILES := $(shell find contribs/nk/src -type f -name '*.js')
+NK_EXAMPLES_HTML_FILES := $(shell find contribs/nk/examples -maxdepth 1 -type f -name '*.html')
+NK_EXAMPLES_JS_FILES := $(shell find contribs/nk/examples -maxdepth 1 -type f -name '*.js')
+NK_APPS_JS_FILES := $(shell find contribs/nk/apps/ -type f -name '*.js')
+NK_APPS_LESS_FILES := $(shell find contribs/nk/less -type f -name '*.less')
+NK_APPS_LIBS_JS_FILES += \
+	contribs/nk/examples/https.js \
 	node_modules/jquery/dist/jquery.min.js \
 	node_modules/angular/angular.min.js \
 	node_modules/angular-gettext/dist/angular-gettext.min.js \
@@ -51,7 +67,7 @@ EXAMPLE_HOSTED_REQUIREMENTS = .build/examples-hosted/lib/ngeo.js \
 	.build/examples-hosted/contribs/gmf/data
 
 # Git
-GITHUB_USERNAME ?= camptocamp
+GITHUB_USERNAME ?= carsmie
 GIT_BRANCH ?= $(shell git rev-parse --symbolic-full-name --abbrev-ref HEAD)
 GIT_REMOTE_NAME ?= origin
 
@@ -68,6 +84,7 @@ endif
 
 NGEO_JS_FILES = $(shell find src -type f -name '*.js')
 GMF_JS_FILES = $(shell find contribs/gmf/src -type f -name '*.js')
+NK_JS_FILES = $(shell find contribs/nk/src -type f -name '*.js')
 
 EXTERNS_ANGULAR = .build/externs/angular-1.4.js
 EXTERNS_ANGULAR_Q = .build/externs/angular-1.4-q_templated.js
@@ -82,6 +99,8 @@ else
 	STAT_COMPRESSED = stat -c '  compressed: %s bytes'
 	STAT_UNCOMPRESSED = stat -c 'uncompressed: %s bytes'
 endif
+STAT_COMPRESSED = stat -f '  compressed: %z bytes'
+STAT_UNCOMPRESSED = stat -f 'uncompressed: %z bytes'
 
 # Disabling Make built-in rules to speed up execution time
 .SUFFIXES:
@@ -115,7 +134,7 @@ help:
 apidoc: .build/apidoc
 
 .PHONY: dist
-dist: dist/ngeo.js dist/ngeo-debug.js dist/gmf.js
+dist: dist/ngeo.js dist/ngeo-debug.js dist/gmf.js dist/nk.js
 
 .PHONY: check
 check: lint dist check-examples test compile-examples build-gmf-mobile-app build-gmf-desktop-app
@@ -131,6 +150,14 @@ build-gmf-mobile-app: $(addprefix contribs/gmf/build/mobile,.js .css) \
 build-gmf-desktop-app: $(addprefix contribs/gmf/build/desktop,.js .css) \
 	$(addprefix contribs/gmf/build/gmf-,$(addsuffix .json, $(LANGUAGES)))
 
+.PHONY: build-nk-mobile-app
+build-gmf-mobile-app: $(addprefix contribs/nk/build/mobile,.js .css) \
+	$(addprefix contribs/nk/build/nk-,$(addsuffix .json, $(LANGUAGES)))
+
+.PHONY: build-nk-desktop-app
+build-gmf-desktop-app: $(addprefix contribs/nk/build/desktop,.js .css) \
+	$(addprefix contribs/nk/build/nk-,$(addsuffix .json, $(LANGUAGES)))
+
 .PHONY: check-examples
 check-examples: $(BUILD_EXAMPLES_CHECK_TIMESTAMP_FILES)
 
@@ -138,7 +165,7 @@ check-examples: $(BUILD_EXAMPLES_CHECK_TIMESTAMP_FILES)
 lint: .build/gjslint.timestamp .build/jshint.timestamp
 
 .PHONY: test
-test: .build/ol-deps.js .build/ngeo-deps.js .build/gmf-deps.js .build/templatecache.js .build/gmftemplatecache.js .build/node_modules.timestamp
+test: .build/ol-deps.js .build/ngeo-deps.js .build/gmf-deps.js .build/templatecache.js .build/gmftemplatecache.js .build/nktemplatecache.js .build/node_modules.timestamp
 	./node_modules/karma/bin/karma start karma-conf.js --single-run
 	@cat .build/coverage/coverage.txt
 	@echo "\nFull coverage report in: .build/coverage/lcov-report"
@@ -164,9 +191,9 @@ examples-hosted: $(EXAMPLE_HOSTED_REQUIREMENTS) \
 gh-pages: .build/ngeo-$(GITHUB_USERNAME)-gh-pages \
 		.build/python-venv/lib/python2.7/site-packages/requests \
 		.build/examples-hosted/index.html \
-		.build/examples-hosted/contribs/gmf/index.html \
-		.build/examples-hosted/contribs/gmf/apps/mobile/index.html \
-		.build/examples-hosted/contribs/gmf/apps/desktop/index.html \
+		.build/examples-hosted/contribs/nk/index.html \
+		.build/examples-hosted/contribs/nk/apps/mobile/index.html \
+		.build/examples-hosted/contribs/nk/apps/desktop/index.html \
 		.build/apidoc
 	cd $<; git fetch origin
 	cd $<; git merge --ff-only origin/gh-pages
@@ -254,7 +281,25 @@ dist/gmf.js: .build/gmf.json \
 	@$(STAT_COMPRESSED) /tmp/gmf.js.gz
 	@rm /tmp/gmf.js.gz
 
+dist/nk.js: .build/nk.json \
+		$(EXTERNS_FILES) \
+		$(SRC_JS_FILES) \
+		$(NK_SRC_JS_FILES) \
+		.build/nktemplatecache.js \
+		$(EXPORTS_JS_FILES) \
+		.build/node_modules.timestamp
+	mkdir -p $(dir $@)
+	node buildtools/build.js $< $@
+	echo '//# sourceMappingURL=nk.js.map' >> $@
+	@$(STAT_UNCOMPRESSED) $@
+	@cp $@ /tmp/
+	@gzip /tmp/nk.js
+	@$(STAT_COMPRESSED) /tmp/nk.js.gz
+	@rm /tmp/nk.js.gz
+
 dist/gmf.js.map: dist/gmf.js
+
+dist/nk.js.map: dist/nk.js
 
 .build/examples/%.min.js: .build/examples/%.json \
 		$(SRC_JS_FILES) \
@@ -342,6 +387,10 @@ dist/gmf.js.map: dist/gmf.js
 	mkdir -p $@
 	cp contribs/gmf/examples/data/* $@
 
+.build/examples-hosted/contribs/nk/data: contribs/nk/examples/data
+	mkdir -p $@
+	cp contribs/nk/examples/data/* $@
+
 .PRECIOUS: .build/examples-hosted/contribs/gmf/fonts/gmf-icons.%
 .build/examples-hosted/contribs/gmf/fonts/gmf-icons.%: contribs/gmf/fonts/gmf-icons.%
 	mkdir -p $(dir $@)
@@ -355,6 +404,10 @@ dist/gmf.js.map: dist/gmf.js
 .build/examples-hosted/contribs/gmf/build: build-gmf-mobile-app build-gmf-desktop-app
 	mkdir -p $(dir $@)
 	cp -r contribs/gmf/build $(dir $@)
+
+.build/examples-hosted/contribs/nk/build: build-nk-mobile-app build-nk-desktop-app
+	mkdir -p $(dir $@)
+	cp -r contribs/nk/build $(dir $@)
 
 node_modules/angular/angular.min.js: .build/node_modules.timestamp
 
@@ -374,7 +427,7 @@ node_modules/angular/angular.min.js: .build/node_modules.timestamp
 		-e 's|/@?main=$*.js|$*.js|' \
 		-e '/default\.js/d' \
 		-e 's|\.\./utils/watchwatchers.js|lib/watchwatchers.js|' \
-		-e '/$*.js/i\    <script src="lib/ngeo.js"></script>' $< > $@
+		-e '' '/$*.js/i\    <script src="lib/ngeo.js"></script>' $< > $@
 
 .PRECIOUS: .build/examples-hosted/contribs/gmf/%.html
 .build/examples-hosted/contribs/gmf/%.html: contribs/gmf/examples/%.html
@@ -392,12 +445,43 @@ node_modules/angular/angular.min.js: .build/node_modules.timestamp
 		-e 's|/@?main=$*\.js|$*.js|' \
 		-e '/default\.js/d' \
 		-e 's|\.\./utils/watchwatchers\.js|lib/watchwatchers.js|' \
-		-e '/$*.js/i\    <script src="../../lib/gmf.js"></script>' $< > $@
+		-e '' '/$*.js/i\    <script src="../../lib/gmf.js"></script>' $< > $@
+
+.PRECIOUS: .build/examples-hosted/contribs/nk/%.html
+.build/examples-hosted/contribs/nk/%.html: contribs/nk/examples/%.html
+	mkdir -p $(dir $@)
+	sed -e 's|\.\./node_modules/openlayers/css/ol\.css|lib/ngeo.css|' \
+		-e 's|\.\./node_modules/bootstrap/dist/css/bootstrap\.css|lib/bootstrap.min.css|' \
+		-e 's|\.\./node_modules/font-awesome/css/font-awesome.css|lib/font-awesome.min.css|' \
+		-e 's|\.\./node_modules/jquery/dist/jquery\.js|lib/jquery.min.js|' \
+		-e 's|\.\./node_modules/bootstrap/dist/js/bootstrap\.js|lib/bootstrap.min.js|' \
+		-e 's|\.\./node_modules/angular/angular\.js|lib/angular.min.js|' \
+		-e 's|\.\./node_modules/angular-gettext/dist/angular-gettext\.js|lib/angular-gettext.min.js|' \
+		-e 's|\.\./node_modules/d3/d3\.js|lib/d3.min.js|' \
+		-e 's|\.\./node_modules/typeahead.js/dist/typeahead.bundle\.js|lib/typeahead.bundle.min.js|' \
+		-e 's|\.\./node_modules/proj4/dist/proj4\.js|lib/proj4.js|' \
+		-e 's|/@?main=$*\.js|$*.js|' \
+		-e '/default\.js/d' \
+		-e 's|\.\./utils/watchwatchers\.js|lib/watchwatchers.js|' \
+		-e '' '/$*.js/i\    <script src="../../lib/nk.js"></script>' $< > $@
 
 .PRECIOUS: .build/examples-hosted/contribs/gmf/apps/mobile/index.html
 .PRECIOUS: .build/examples-hosted/contribs/gmf/apps/desktop/index.html
 .build/examples-hosted/contribs/gmf/apps/%/index.html: contribs/gmf/apps/%/index.html \
 		.build/examples-hosted/contribs/gmf/build \
+		$(addprefix .build/examples-hosted/contribs/gmf/fonts/fontawesome-webfont., eot ttf woff woff2) \
+		$(addprefix .build/examples-hosted/contribs/gmf/fonts/gmf-icons., eot ttf woff)
+	mkdir -p $(dir $@)
+	sed -e '/stylesheet\/less" href="..\/..\//d' \
+		-e '/\/node_modules\//d' \
+		-e '/default\.js/d' \
+		-e 's|utils/watchwatchers\.js|lib/watchwatchers.js|' \
+		-e 's|/@?main=$*/js/controller\.js|../../build/$*.js|' $< > $@
+
+.PRECIOUS: .build/examples-hosted/contribs/nk/apps/mobile/index.html
+.PRECIOUS: .build/examples-hosted/contribs/nk/apps/desktop/index.html
+.build/examples-hosted/contribs/nk/apps/%/index.html: contribs/nk/apps/%/index.html \
+		.build/examples-hosted/contribs/nk/build \
 		$(addprefix .build/examples-hosted/contribs/gmf/fonts/fontawesome-webfont., eot ttf woff woff2) \
 		$(addprefix .build/examples-hosted/contribs/gmf/fonts/gmf-icons., eot ttf woff)
 	mkdir -p $(dir $@)
@@ -417,6 +501,11 @@ node_modules/angular/angular.min.js: .build/node_modules.timestamp
 	mkdir -p $(dir $@)
 	sed -e '/^goog\.provide/d' -e '/^goog\.require/d' $< > $@
 
+.PRECIOUS: .build/examples-hosted/contribs/nk/%.js
+.build/examples-hosted/contribs/nk/%.js: contribs/nk/examples/%.js
+	mkdir -p $(dir $@)
+	sed -e '/^goog\.provide/d' -e '/^goog\.require/d' $< > $@
+
 .build/examples-hosted/index.html: buildtools/examples-index.mako.html $(EXAMPLES_HTML_FILES) .build/python-venv/bin/mako-render .build/beautifulsoup4.timestamp
 	mkdir -p $(dir $@)
 	.build/python-venv/bin/python buildtools/generate-examples-index.py $< $(EXAMPLES_HTML_FILES) > $@
@@ -427,6 +516,13 @@ node_modules/angular/angular.min.js: .build/node_modules.timestamp
 		--app 'Mobile application' apps/mobile/index.html 'The mobile example application for GeoMapFish.' \
 		--app 'Desktop application' apps/desktop/index.html 'The desktop example application for GeoMapFish.' \
 		$< $(GMF_EXAMPLES_HTML_FILES) > $@
+
+.build/examples-hosted/contribs/nk/index.html: buildtools/examples-index.mako.html $(NK_EXAMPLES_HTML_FILES) .build/python-venv/bin/mako-render .build/beautifulsoup4.timestamp
+	mkdir -p $(dir $@)
+	.build/python-venv/bin/python buildtools/generate-examples-index.py \
+		--app 'Mobile application' apps/mobile/index.html 'The mobile example application for norgeskart.' \
+		--app 'Desktop application' apps/desktop/index.html 'The desktop example application for norgeskart.' \
+		$< $(NK_EXAMPLES_HTML_FILES) > $@
 
 .build/%.check.timestamp: .build/examples-hosted/%.html \
 		.build/examples-hosted/%.js \
@@ -487,6 +583,12 @@ contribs/gmf/fonts/fontawesome-webfont.%: node_modules/font-awesome/fonts/fontaw
 		--var lib=true \
 		--var src_set=contribs_gmf \
 		--var source_map=dist/gmf.js.map $< > $@
+
+.build/nk.json: buildtools/mako_build.json .build/python-venv/bin/mako-render
+	PYTHONIOENCODING=UTF-8 .build/python-venv/bin/mako-render \
+		--var lib=true \
+		--var src_set=contribs_nk \
+		--var source_map=dist/nk.js.map $< > $@
 
 .build/app-%.json: buildtools/mako_build.json .build/python-venv/bin/mako-render
 	PYTHONIOENCODING=UTF-8 .build/python-venv/bin/mako-render \
@@ -569,6 +671,14 @@ $(EXTERNS_JQUERY):
 		--var "partials=$(addprefix ngeo:,$(NGEO_DIRECTIVES_PARTIALS_FILES)) \
 		$(addprefix gmf:,$(GMF_DIRECTIVES_PARTIALS_FILES))" $< > $@
 
+.build/nktemplatecache.js: buildtools/templatecache.mako.js \
+		.build/python-venv/bin/mako-render \
+		$(NGEO_DIRECTIVES_PARTIALS_FILES) $(NK_DIRECTIVES_PARTIALS_FILES)
+	PYTHONIOENCODING=UTF-8 .build/python-venv/bin/mako-render \
+		--var "app=nk" \
+		--var "partials=$(addprefix ngeo:,$(NGEO_DIRECTIVES_PARTIALS_FILES)) \
+		$(addprefix nk:,$(NK_DIRECTIVES_PARTIALS_FILES))" $< > $@
+
 .build/jsdocAngularJS.js: jsdoc/get-angularjs-doc-ref.js .build/node_modules.timestamp
 	node $< > $@
 
@@ -588,11 +698,23 @@ contribs/gmf/build/%.closure.js: .build/app-%.json \
 	./node_modules/openlayers/node_modules/.bin/closure-util build $< $@
 	echo '//# sourceMappingURL=$*.js.map' >> $@
 
+contribs/nk/build/%.closure.js: .build/app-%.json \
+		$(EXTERNS_FILES) \
+		contribs/nk/apps/%/js/controller.js \
+		.build/nktemplatecache.js \
+		.build/node_modules.timestamp
+	mkdir -p $(dir $@)
+	./node_modules/openlayers/node_modules/.bin/closure-util build $< $@
+	echo '//# sourceMappingURL=$*.js.map' >> $@
+
 contribs/gmf/build/%.js: contribs/gmf/build/%.closure.js $(GMF_APPS_LIBS_JS_FILES)
 	awk 'FNR==1{print ""}1' $(GMF_APPS_LIBS_JS_FILES) $< > $@
 
+contribs/nk/build/%.js: contribs/nk/build/%.closure.js $(NK_APPS_LIBS_JS_FILES)
+	awk 'FNR==1{print ""}1' $(NK_APPS_LIBS_JS_FILES) $< > $@
+
 .PHONY: compile-css
-compile-css: contribs/gmf/build/mobile.css contribs/gmf/build/desktop.css
+compile-css: contribs/gmf/build/mobile.css contribs/gmf/build/desktop.css contribs/nk/build/mobile.css contribs/nk/build/desktop.css
 
 contribs/gmf/build/%.css: contribs/gmf/apps/%/less/main.less $(GMF_APPS_LESS_FILES) \
 		.build/node_modules.timestamp \
@@ -600,6 +722,11 @@ contribs/gmf/build/%.css: contribs/gmf/apps/%/less/main.less $(GMF_APPS_LESS_FIL
 	mkdir -p $(dir $@)
 	./node_modules/.bin/lessc $< $@ --autoprefix
 
+contribs/nk/build/%.css: contribs/nk/apps/%/less/main.less $(NK_APPS_LESS_FILES) \
+		.build/node_modules.timestamp \
+		$(FONTAWESOME_WEBFONT)
+	mkdir -p $(dir $@)
+	./node_modules/.bin/lessc $< $@ --autoprefix
 
 # i18n
 
@@ -681,20 +808,25 @@ clean:
 	rm -f .build/ol-deps.js
 	rm -f .build/ngeo-deps.js
 	rm -f .build/gmf-deps.js
+	rm -f .build/nk-deps.js
 	rm -f .build/info.json
 	rm -f .build/examples-all.json
 	rm -f .build/ngeo.json
 	rm -f .build/gmf.json
+	rm -f .build/nk.json
 	rm -f .build/app-*.json
 	rm -f .build/templatecache.js
 	rm -f .build/gmftemplatecache.js
+	rm -f .build/nktemplatecache.js
 	rm -f dist/*
 	rm -f $(EXTERNS_FILES)
 	rm -rf .build/apidoc
 	rm -rf .build/examples-hosted
 	rm -rf .build/contribs
 	rm -rf contribs/gmf/build
+	rm -rf contribs/nk/build
 	rm -f .build/locale/gmf.pot
+	rm -f .build/locale/nk.pot
 
 .PHONY: cleanall
 cleanall: clean

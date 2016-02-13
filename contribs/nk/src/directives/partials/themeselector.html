@@ -1,0 +1,15 @@
+<ul class="nk-theme-selector">
+  <li
+      ng-repeat="theme in tsCtrl.themes"
+      ng-click="tsCtrl.switchTheme(theme)">
+    <div class="nk-check">
+      <span class="nk-icon"
+          ng-class="{'nk-icon-check': tsCtrl.currentTheme['name'] == theme.name}">
+      </span>
+    </div>
+    <div class="nk-text">{{::theme.name}}</div>
+    <img class="nk-thumb"
+         ng-src="{{::theme.icon}}" />
+    <div class="nk-eol"></div>
+  </li>
+</ul>

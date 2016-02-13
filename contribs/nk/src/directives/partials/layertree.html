@@ -1,0 +1,39 @@
+<span ng-if="::!layertreeCtrl.isRoot" id="node-{{::layertreeCtrl.uid}}" ng-class="[layertreeCtrl.node.children ? 'group' : 'leaf', 'depth-' + layertreeCtrl.depth, nkLayertreeCtrl.getResolutionStyle(layertreeCtrl.node), nkLayertreeCtrl.getNoSourceStyle(layertreeCtrl)]">
+  <a href ng-click="::nkLayertreeCtrl.toggleActive(layertreeCtrl)">
+    <span class="layerIcon">
+      <img ng-src="{{::nkLayertreeCtrl.getLegendIconURL(layertreeCtrl)}}"></img>
+    </span>
+    <span class="state" ng-class="[nkLayertreeCtrl.getNodeState(layertreeCtrl)]"></span>
+    <span class="name">{{::layertreeCtrl.node.name}}</span>
+  </a>
+  <span class="rightButtons">
+    <span class="metadata" ng-if="::layertreeCtrl.node.metadata.metadataUrl">
+      <span ng-if="::nkLayertreeCtrl.openLinksInNewWindow === true">
+        <a title="More informations" href="{{::layertreeCtrl.node.metadata.metadataUrl}}" target="blank_"></a>
+      </span>
+      <span ng-if="::nkLayertreeCtrl.openLinksInNewWindow !== true">
+        <a title="More informations" href="" ng-click="nkLayertreeCtrl.displayMetadata(layertreeCtrl)"></a>
+      </span>
+    </span>
+    <span class="zoom" title="Zoom to a visible level" ng-click="::nkLayertreeCtrl.zoomToResolution(layertreeCtrl.node)"></span>
+    <span class="legendButton" ng-if="::(nkLayertreeCtrl.getLegendURL(layertreeCtrl) && layertreeCtrl.node.metadata.legend == 'true')">
+      <a title="Show/hide legend" data-toggle="collapse" href="#node-{{::layertreeCtrl.uid}}-legend"></a>
+    </span>
+  </span>
+  <span class="legend">
+    <div id="node-{{::layertreeCtrl.uid}}-legend" class="collapse" ng-class="::[layertreeCtrl.node.metadata.isLegendExpanded == 'true' ? 'in' : '']">
+      <a data-toggle="collapse" href="#node-{{::layertreeCtrl.uid}}-legend">
+        <img ng-src="{{nkLayertreeCtrl.getLegendURL(layertreeCtrl)}}"></img>
+      </a>
+    </div>
+  </span>
+</span>
+<ul ng-if="::layertreeCtrl.node.children">
+  <li class="treenode" ng-repeat="node in layertreeCtrl.node.children"
+      ngeo-layertree="node"
+      ngeo-layertree-notroot
+      ngeo-layertree-map="layertreeCtrl.map"
+      ngeo-layertree-nodelayerexpr="layertreeCtrl.nodelayerExpr"
+      ngeo-layertree-listenersexpr="layertreeCtrl.listenersExpr">
+  </li>
+</ul>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html ng-app='app'>
+  <head>
+    <title>Simple norgeskart</title>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="../../../node_modules/openlayers/css/ol.css" type="text/css">
+    <style>
+      nk-map > div {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body ng-controller="MainController as ctrl">
+    <nk-map nk-map-map="ctrl.map"></nk-map>
+    <script src="../../../node_modules/angular/angular.js"></script>
+    <script src="../../../node_modules/angular-gettext/dist/angular-gettext.js"></script>
+    <script src="/@?main=simple.js"></script>
+    <script src="default.js"></script>
+    <script src="../../../utils/watchwatchers.js"></script>
+  </body>
+</html>
